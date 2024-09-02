@@ -396,9 +396,12 @@ class Loop_Function:
                 '''self.mask = pygame.mask.from_surface(shepherd_image)
                 self.screen.blit(shepherd_image, (rect_x, rect_y))'''
                 current_time = pygame.time.get_ticks()
-                if current_time - self.last_switch_time > self.image_switch_time:
-                    self.current_image_index = (self.current_image_index + 1) % len(self.shepherd_images)
-                    self.last_switch_time = current_time
+                if not self.is_paused:
+                    current_time = pygame.time.get_ticks()
+
+                    if current_time - self.last_switch_time > self.image_switch_time:
+                        self.current_image_index = (self.current_image_index + 1) % len(self.shepherd_images)
+                        self.last_switch_time = current_time
 
                 current_shepherd_image = self.shepherd_images[self.current_image_index]
                 self.mask = pygame.mask.from_surface(shepherd_image)
