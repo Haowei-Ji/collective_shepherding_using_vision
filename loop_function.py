@@ -72,6 +72,16 @@ class Loop_Function:
         self.screen = pygame.display.set_mode([self.WIDTH + 2 * self.window_pad, self.HEIGHT + 2 * self.window_pad])
         self.clock = pygame.time.Clock()
 
+        #new add for move_dog
+
+        # set first index and fps
+        self.current_image_index = 0
+        self.image_switch_time = 500  # (ms)
+        self.last_switch_time = pygame.time.get_ticks() # get current time(beginning)
+
+        # end of new add
+
+
     def draw_background(self):
         # add background
         images_path = os.getcwd() + "/images/"
@@ -80,8 +90,8 @@ class Loop_Function:
         self.screen.blit(background, (0, 0))
 
         # add fence
-        fence_h = pygame.image.load(images_path + "fence_h" + ".png")
-        fence_v = pygame.image.load(images_path + "fence_v" + ".png")
+        fence_h = pygame.image.load(images_path + "fence_h_yellow" + ".png")
+        fence_v = pygame.image.load(images_path + "fence_v_yellow" + ".png")
         fence_h = pygame.transform.scale(fence_h, (self.Target_size + self.window_pad*2, self.window_pad))
         fence_v = pygame.transform.scale(fence_v, (self.window_pad, self.Target_size + self.window_pad*2))
 
@@ -328,6 +338,9 @@ class Loop_Function:
 
         self.draw_agent_animation()
 
+        # new add
+        # self.dynamic_grass()
+
     def draw_agent_animation(self):
         images_path = os.getcwd() + "/images/"
         sheep_image = pygame.image.load(images_path + "sheep_1" + ".png")
@@ -339,9 +352,38 @@ class Loop_Function:
 
         # transform size of image
         shepherd_image = pygame.image.load(images_path + "shepherd" + ".png")
+        
         shepherd_scale = 0.3
         shepherd_image = pygame.transform.scale(shepherd_image, (
             int(shepherd_image.get_width() * shepherd_scale), int(shepherd_image.get_height() * shepherd_scale)))
+
+
+        # add new running dog image
+        shepherd_image1 = pygame.image.load(images_path + "shepherd_run1" + ".png")
+        shepherd_image2 = pygame.image.load(images_path + "shepherd_run2" + ".png")
+
+        shepherd_image1 = pygame.transform.scale(shepherd_image1, (
+            int(shepherd_image1.get_width() * shepherd_scale), int(shepherd_image1.get_height() * shepherd_scale)))
+
+        shepherd_image2 = pygame.transform.scale(shepherd_image2, (
+            int(shepherd_image2.get_width() * shepherd_scale), int(shepherd_image2.get_height() * shepherd_scale)))
+
+
+        self.shepherd_images = [shepherd_image1, shepherd_image2]
+
+        '''# set first index and fps
+        self.current_image_index = 0
+        self.image_switch_time = self.framerate #(ms)
+        self.last_switch_time = pygame.time.get_ticks()
+
+        current_time = pygame.time.get_ticks()
+        if current_time - self.last_switch_time > self.image_switch_time:
+            self.current_image_index = (self.current_image_index + 1) % len(self.shepherd_images)
+            self.last_switch_time = current_time  # Update switch time
+
+        current_shepherd_image = self.shepherd_images[self.current_image_index]
+        '''
+
 
         for agent in self.agents:
             # update position
@@ -351,8 +393,18 @@ class Loop_Function:
                 self.mask = pygame.mask.from_surface(sheep_image)
                 self.screen.blit(sheep_image, (rect_x, rect_y))  # scaled_image
             else:
+                '''self.mask = pygame.mask.from_surface(shepherd_image)
+                self.screen.blit(shepherd_image, (rect_x, rect_y))'''
+                current_time = pygame.time.get_ticks()
+                if current_time - self.last_switch_time > self.image_switch_time:
+                    self.current_image_index = (self.current_image_index + 1) % len(self.shepherd_images)
+                    self.last_switch_time = current_time
+
+                current_shepherd_image = self.shepherd_images[self.current_image_index]
                 self.mask = pygame.mask.from_surface(shepherd_image)
-                self.screen.blit(shepherd_image, (rect_x, rect_y))
+                self.screen.blit(current_shepherd_image, (rect_x, rect_y))
+
+
 
 
     def draw_agent_zones(self):
@@ -376,6 +428,32 @@ class Loop_Function:
         with open(robot_file) as f:
             robot_data = json.load(f)
         return robot_data
+
+    ''' def dynamic_grass(self):
+
+        self.grass_position = [-50, self.HEIGHT - 50]
+        self.grass_speed = [1, -1]
+        
+        
+        # dynamic grass
+        pygame.draw.arc(self.screen, support.GREEN,
+                        (self.grass_position[0] - 200, self.grass_position[1] - 300, 400, 10), 0, 3.14, 16)
+        pygame.draw.arc(self.screen, support.GREEN, (self.grass_position[0], self.grass_position[1], 200, 40), 0, 3.14,
+                        6)
+        pygame.draw.arc(self.screen, support.GREEN,
+                        (self.grass_position[0] + 300, self.grass_position[1] + 200, 300, 100), 0, 3.14, 13)
+        pygame.draw.arc(self.screen, support.GREEN,
+                        (self.grass_position[0] + 600, self.grass_position[1] + 300, 150, 30), 0, 3.14, 15)
+
+        # move
+        self.grass_position[0] += self.grass_speed[0]
+        self.grass_position[1] += self.grass_speed[1]
+
+        # top to bottom
+        if self.grass_position[0] > self.WIDTH or self.grass_position[1] < -100:
+            self.grass_position = [-50, self.HEIGHT - 50]
+
+        pygame.display.flip()'''
 
     def start(self):
 
