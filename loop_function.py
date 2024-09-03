@@ -9,6 +9,8 @@ from shepherd_agent import Shepherd_Agent
 import support
 import os, json
 
+from moviepy.editor import VideoFileClip
+
 class Loop_Function:
     def __init__(self, N_sheep=10, N_shepherd = 1, Time=1000, width=500, height=500,
                  target_place_x = 1000, target_place_y = 1000, target_size = 200,
@@ -79,15 +81,44 @@ class Loop_Function:
         self.image_switch_time = 500  # (ms)
         self.last_switch_time = pygame.time.get_ticks() # get current time(beginning)
 
+        #new add for dynamic background
+        images_path = os.getcwd() + "/images/"
+        clip = VideoFileClip(images_path + "background_video" + ".mp4")
+
+        self.frames = []
+        for frame in clip.iter_frames():
+            frame_bytes = frame.tobytes()
+            self.video_width, self.video_height = frame.shape[1::-1]
+            pygame_frame = pygame.image.frombuffer(frame_bytes, (self.video_width, self.video_height), "RGB")
+            self.frames.append(pygame_frame)
+
+        self.video_x_position = (self.WIDTH + 2 * self.window_pad - self.video_width) // 2
+        self.video_y_position = (self.HEIGHT + 2 * self.window_pad - self.video_height) // 2
+        self.frame_index = 0
+        self.clip_fps = clip.fps
+        self.clock = pygame.time.Clock()
+
         # end of new add
 
 
     def draw_background(self):
         # add background
         images_path = os.getcwd() + "/images/"
-        background = pygame.image.load(images_path + "background_2" + ".jpg")
+        '''background = pygame.image.load(images_path + "background_2" + ".jpg")
         background = pygame.transform.scale(background, (self.WIDTH + 2 * self.window_pad, self.HEIGHT+ 2 * self.window_pad))
-        self.screen.blit(background, (0, 0))
+        self.screen.blit(background, (0, 0))'''
+
+        # show first frame
+        self.screen.blit(self.frames[self.frame_index], (self.video_x_position, self.video_y_position))
+
+        # updat next frame
+        self.frame_index = (self.frame_index + 1) % len(self.frames)
+
+        # Control frame rate
+        self.clock.tick(self.clip_fps)
+
+
+
 
         # add fence
         fence_h = pygame.image.load(images_path + "fence_h_yellow" + ".png")
