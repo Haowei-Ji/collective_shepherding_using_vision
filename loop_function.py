@@ -141,7 +141,8 @@ class Loop_Function:
         self.screen.blit(self.frames[self.frame_index], (self.video_x_position, self.video_y_position))
 
         # update next frame
-        self.frame_index = (self.frame_index + 1) % len(self.frames)
+        if not self.is_paused:
+            self.frame_index = (self.frame_index + 1) % len(self.frames)
 
         # Control frame rate
         self.clock.tick(self.clip_fps)
