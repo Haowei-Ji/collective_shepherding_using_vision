@@ -590,6 +590,7 @@ class Loop_Function:
         pygame.quit()
 
 
+
 def within_group_collision(sprite1, sprite2):
     """Custom colllision check that omits collisions of sprite with itself. This way we can use group collision
     detect WITHIN a single group instead of between multiple groups"""
