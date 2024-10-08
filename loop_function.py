@@ -12,6 +12,8 @@ import os, json
 from moviepy.editor import VideoFileClip
 #pip install pygame moviepy
 
+from scipy.spatial import Voronoi
+
 class Loop_Function:
     def __init__(self, N_sheep=10, N_shepherd = 1, Time=1000, width=500, height=500,
                  target_place_x = 1000, target_place_y = 1000, target_size = 200,
@@ -112,7 +114,7 @@ class Loop_Function:
 
         #new add for dynamic background
         #images_path = os.getcwd() + "/images/"
-        clip = VideoFileClip(images_path + "background_video" + ".mp4")
+        clip = VideoFileClip(images_path + "background_color_change" + ".mp4")
 
         self.frames = []
         for frame in clip.iter_frames():
@@ -173,6 +175,28 @@ class Loop_Function:
         pygame.draw.line(self.screen, support.BLACK,
                          [self.window_pad, self.window_pad + self.HEIGHT],
                          [self.window_pad + self.WIDTH, self.window_pad + self.HEIGHT])
+
+    def get_sheep_positions(self):
+        positions = []
+        for sheep_agent in self.sheep_agents:
+            positions.append([sheep_agent.x, sheep_agent.y])
+        #return np.array(positions)
+        return positions
+
+
+    def create_voronoi(self, positions):
+        vor = Voronoi(positions)
+        return vor
+
+    def draw_voronoi(self, vor, positions):
+        for ridge in vor.ridge_points:
+            p1, p2 = ridge  # 获取相邻点的索引
+            point1 = positions[p1]
+            point2 = positions[p2]
+            if np.all(ridge >= 0):  # 排除无穷远点
+                pygame.draw.line(self.screen, (0, 0, 255), point1, point2, 1)
+
+
 
     def draw_target_place(self):
         # pygame.draw.circle(self.screen, support.GREY, [self.Target_x, self.Target_y], radius=self.Target_size)
@@ -394,13 +418,17 @@ class Loop_Function:
 
         # self.agents.draw(self.screen)
 
+        # Get sheep agents and draw Voronoi
+        sheep_positions = self.get_sheep_positions()
+        if len(sheep_positions) > 2:
+            voronoi_diagram = self.create_voronoi(sheep_positions)
+            self.draw_voronoi(voronoi_diagram, sheep_positions)
+
         self.draw_framerate()
         self.draw_agent_stats()
 
         self.draw_agent_animation()
 
-        # new add
-        # self.dynamic_grass()
 
     def draw_agent_animation(self):
         '''images_path = os.getcwd() + "/images/"
