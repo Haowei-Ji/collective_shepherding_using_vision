@@ -189,11 +189,37 @@ class Loop_Function:
         return vor
 
     def draw_voronoi(self, vor, positions):
+        for region in vor.regions:
+            polygon = [vor.vertices[i] for i in region if i != -1]
+            if len(polygon) > 0:
+                pygame.draw.polygon(self.screen, (255, 255, 255), polygon, 1)
+
+    def draw_voronoi_diagram(self, vor, positions):
+        for region_index in vor.point_region:
+            region = vor.regions[region_index]
+
+            # Select non-empty regions
+            if not -1 in region and len(region) > 0:
+            #if len(region) > 0:
+                polygon = [vor.vertices[i] for i in region]
+
+                # Delete the polygon outside the screen
+                on_screen_polygon = []
+                for vertex in polygon:
+                    x, y = int(vertex[0]), int(vertex[1])
+                    if 0 <= x <= self.WIDTH + 2 * self.window_pad and 0 <= y <= self.HEIGHT + 2 * self.window_pad:
+                        on_screen_polygon.append((x, y))
+
+                # Draw the polygon
+                if len(on_screen_polygon) > 2:
+                    pygame.draw.polygon(self.screen, (255, 0, 0), on_screen_polygon, 1)
+
+    def draw_voronoi_neighbors(self, vor, positions):
         for ridge in vor.ridge_points:
-            p1, p2 = ridge  # 获取相邻点的索引
+            p1, p2 = ridge  # get the indices of the points
             point1 = positions[p1]
             point2 = positions[p2]
-            if np.all(ridge >= 0):  # 排除无穷远点
+            if np.all(ridge >= 0):  # finite ridge
                 pygame.draw.line(self.screen, (0, 0, 255), point1, point2, 1)
 
 
@@ -410,24 +436,31 @@ class Loop_Function:
         """Drawing environment, agents and every other visualization in each timestep"""
         self.screen.fill(support.BACKGROUND)
         self.draw_walls()
-        self.draw_background()
+
+        # Stop animation
+        #self.draw_background()
         self.draw_target_place()
 
         if self.show_zones:
             self.draw_agent_zones()
+        # Stop animation
+        self.agents.draw(self.screen)
 
-        # self.agents.draw(self.screen)
-
-        # Get sheep agents and draw Voronoi
+        # Get sheep agents position and draw Voronoi
         sheep_positions = self.get_sheep_positions()
         if len(sheep_positions) > 2:
             voronoi_diagram = self.create_voronoi(sheep_positions)
-            self.draw_voronoi(voronoi_diagram, sheep_positions)
+            # Draw Voronoi neighbors
+            self.draw_voronoi_neighbors(voronoi_diagram, sheep_positions)
+            self.draw_voronoi_diagram(voronoi_diagram, sheep_positions)
+
+
 
         self.draw_framerate()
         self.draw_agent_stats()
 
-        self.draw_agent_animation()
+        # Stop animation
+        #self.draw_agent_animation()
 
 
     def draw_agent_animation(self):
